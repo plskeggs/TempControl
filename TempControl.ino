@@ -90,7 +90,6 @@ void loop()
   // this call interprets characters from the serial port
   // its a very basic control to allow adjustment of gain values, and set temp
   updateSerialInterface(); 
-  updateHeater();
 #if !defined(USE_THERMOCOUPLE)
   updateTempSensor();
 #endif
@@ -109,7 +108,6 @@ void loop()
     ir_temp = getLastTemp();
 #endif
     new_temp = updateLCD(targetTemp, ir_temp, thermo_temp);
-    updateHeater();
     if (new_temp > 0) {
       targetTemp = new_temp;
     }
@@ -119,11 +117,9 @@ void loop()
  #else
     heatPower = updatePID(targetTemp, getFreshTemp());
  #endif
-    updateHeater();
     setHeatPowerPercentage(heatPower);
     thermo_temp = updateMax();
   }  
-  updateHeater();
 }
 
 // END BBCC Main

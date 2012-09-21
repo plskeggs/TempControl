@@ -56,7 +56,7 @@ float updateLCD(float target, float t1, float t2) {
   }
   lcd.clear();
   // first line: running time in seconds, space, temperature from IR thermometer, space, state of heater
-  lcd.print((millis()-startTime)/1000.0);lcd.print(" ");lcd.print(t1);lcd.print(" ");lcd.print(heaterState ? "ON " : "OFF");
+  lcd.print((millis()-startTime)/1000.0);lcd.print(" ");lcd.print(t1);lcd.print(" ");lcd.print(getHeatCycles());
   lcd.setCursor(0,1); 
   // second line: target temperature, space, temperature from thermocouple
   lcd.print(trg); lcd.print(" ");lcd.print(t2);

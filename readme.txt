@@ -3,6 +3,9 @@ TempControl code 9/20/2012
 - changed heater updates to occur between calling every main loop handler; this results in snappier response
 - changed timebase and power range to 500ms from 1000ms for faster response; results in tighter temperature control
 
+9/21/2012
+- added use of modified version of TimerOne library to perform pwm in the background (original is from here:http://arduino.cc/playground/Code/Timer1, but I added ability to do pwm to any pin)
+
 Scott's original readme:
 
 The current versions of the Eagle files, .hex files and source code can be found at http://dorkbotpdx.org/blog/scott_d/temperature_controller_board_final_design

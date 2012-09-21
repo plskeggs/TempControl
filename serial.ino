@@ -49,10 +49,18 @@ void updateSerialInterface() {
     incomingByte = Serial.read();
     if (incomingByte == 'R') {
       Serial.println("Resetting EEPROM values...");
+ #if defined(USE_THERMOCOUPLE)
+      setP(35.0); // make sure to keep the decimal point on these values
+      setI(1.0);  // make sure to keep the decimal point on these values
+      setD(5.0);  // make sure to keep the decimal point on these values
+      setTargetTemp(0.0); // here too; for safety, turn off heat by default
+ #else
       setP(30.0); // make sure to keep the decimal point on these values
       setI(0.0);  // make sure to keep the decimal point on these values
       setD(0.0);  // make sure to keep the decimal point on these values
-      setTargetTemp(100.0); // here too
+      setTargetTemp(200.0); // here too
+ #endif
+      printStatus(); // show what we just did
     } 
     if (incomingByte == 'P') {
       setP(getP() + delta);
