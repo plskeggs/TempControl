@@ -12,7 +12,7 @@
 
 #define HEAT_RELAY_PIN 13
 
-float heatcycles; // the number of millis out of 1000 for the current heat amount (percent * 10)
+float heatcycles; // the number of millis out of 500 for the current heat amount (percent * 5)
 
 boolean heaterState = 0;
 

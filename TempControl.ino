@@ -37,7 +37,7 @@
 #define USE_THERMOCOUPLE 1
 
 float targetTemp;  //current temperature goal
-float heatPower; // 0 - 1000  milliseconds on per second
+float heatPower; // 0 - 500  milliseconds on per second
 float thermo_temp;
 
 unsigned long lastPIDTime;  // most recent PID update time in ms 
@@ -45,7 +45,7 @@ unsigned long lastPIDTime;  // most recent PID update time in ms
 void setup()
 {
   setupSerialInterface();
-  Serial.println("Temperature Controller v1.0");
+  Serial.println("Temperature Controller v1.1");
   Serial.println("Setting up reset button...");
   pinMode(RESET_BUTTON, INPUT);
   digitalWrite(RESET_BUTTON, HIGH);
