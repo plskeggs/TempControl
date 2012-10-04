@@ -9,5 +9,9 @@ float temperature = 0.0;  // Temperature output variable
 MAX6675 temp0(CS1,SO1,SCK1,units,error);
 
 float updateMax() {
-     return temp0.read_temp(5);         // Read the temp 5 times and return the average value to the var
+     return temperature = temp0.read_temp(5);         // Read the temp 5 times and return the average value to the var
+}
+
+float getLastThermoTemp() {
+   return temperature;
 }

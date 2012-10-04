@@ -74,6 +74,13 @@ float getTargetTemp() {
   return targetTemp;
 }
 
+float getCurrentTemp() {     // get which ever temperature is the controlling one
+#if defined(USE_THERMOCOUPLE)
+   return getLastThermoTemp();
+#else
+   return getLastTemp();
+#endif
+}
 
 void loop()
 {  
@@ -108,7 +115,7 @@ void loop()
     ir_temp = getLastTemp();
 #endif
     new_temp = updateLCD(targetTemp, ir_temp, thermo_temp);
-    if (new_temp > 0) {
+    if (new_temp >= 0) {
       targetTemp = new_temp;
     }
     lastPIDTime +=  PID_UPDATE_INTERVAL;
