@@ -20,7 +20,18 @@
 #include "Wire.h"
 
 LiquidCrystal lcd(RS, RW, E, D4, D5, D6, D7);
-RotaryEncoder rotary(2, 19, 18);
+
+#define REVERSE_ENCODER 1 // mine is wired backwards, in that clockwise rotation of the shaft results in a decreasing temperature rather than the desired increasing temperature
+#if defined(REVERSE_ENCODER)
+#define CHA 19
+#define CHB 2
+#else
+#define CHA 2
+#define CHB 19
+#endif
+#define ENCBUTTON 18
+
+RotaryEncoder rotary(CHA, CHB, ENCBUTTON);
 
 typedef enum menu_state
 {
