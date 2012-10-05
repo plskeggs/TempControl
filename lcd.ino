@@ -50,7 +50,7 @@ TEMP_PROFILE_POINT leadProfile[7] = {
    {100.0, 45}, // pre-heat
    {140.0, 45}, // flux activation
    {180.0, 120},// soaking to minimize voiding in BGA assemblies
-   {220.0, 70}, // reflow! (spec says this should be 30 seconds, but we can't rise that fast)
+   {220.0, 30}, // reflow! (spec says this should be 30 seconds, but we can't rise that fast)
    {180.0, 30}, // cooling starts now... open the door to help it along, since this thing is a heater, not a cooler
    {25.0, 120},
    {0.0, 0}     // end of profile sentinel
@@ -59,8 +59,8 @@ TEMP_PROFILE_POINT leadProfile[7] = {
 TEMP_PROFILE_POINT leadFreeProfile[7] = {
    {100.0, 60}, // pre-heat
    {140.0, 60}, // flux activation
-   {219.0, 90}, // soak
-   {240.0, 45}, // peak reflow (min 230, max 249) (spec says this should be 30 seconds, but we can't rise that fast)
+   {219.0, 90}, // soak (should be 90 by spec, but can't go that fast)
+   {240.0, 30}, // peak reflow (min 230, max 249) (spec says this should be 30 seconds, but we can't rise that fast)
    {219.0, 30}, // cooling start
    {25.0, 100},
    {0.0, 0}     // end of profile sentinel
@@ -125,7 +125,7 @@ float updateLCD(float target, float t1, float t2) {
         if(!rotary.pressed())
         {
            old_mode = mode;
-           mode = (rotary.position()/2) % 4;
+           mode = (rotary.position()/4) % 4;
            if(mode != old_mode)
            {
               lcd.setCursor(menuX[old_mode],1);
@@ -211,7 +211,7 @@ float updateLCD(float target, float t1, float t2) {
         break;
      case MS_RUNNING:
         curTime = millis();
-        if(curTime < endTime)
+        if ((curTime < endTime) || (fabs(getCurrentTemp() - curProfile->goalTemp) > 2.0))
         {
            new_temp = target + currentSlope * (curTime - tempUpdateTime);
            if (currentSlope >= 0.0) { // for safety, sanity-check the current target temperature
@@ -224,7 +224,7 @@ float updateLCD(float target, float t1, float t2) {
            }
            trg = new_temp;
            tempUpdateTime = curTime;
-           if(curTime > lcdUpdateTime)
+           if (curTime > lcdUpdateTime)
            {
               lcd.clear();
               // first line: running time in seconds, space, end time, space, state of heater
@@ -237,6 +237,8 @@ float updateLCD(float target, float t1, float t2) {
         }
         else
         {
+           Serial.print(F("time over="));
+           Serial.println((curTime - endTime) / 1000.0, 1);
            Serial.println(F("next profile"));
            curProfile++;
            startTime = curTime;
