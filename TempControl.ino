@@ -45,23 +45,23 @@ unsigned long lastPIDTime;  // most recent PID update time in ms
 void setup()
 {
   setupSerialInterface();
-  Serial.println("Temperature Controller v1.1");
-  Serial.println("Setting up reset button...");
+  Serial.println(F("Temperature Controller v1.1"));
+  Serial.println(F("Setting up reset button..."));
   pinMode(RESET_BUTTON, INPUT);
   digitalWrite(RESET_BUTTON, HIGH);
-  Serial.println("Setting up PID...");
+  Serial.println(F("Setting up PID..."));
   setupPID(PGAIN_ADR, IGAIN_ADR, DGAIN_ADR ); // Send addresses to the PID module 
-  Serial.println("Reading EEPROM...");
+  Serial.println(F("Reading EEPROM..."));
   targetTemp = readFloat(ESPRESSO_TEMP_ADDRESS); // from EEPROM. load the saved value
-  Serial.println("Setting up LCD...");
+  Serial.println(F("Setting up LCD..."));
   setupLCD(targetTemp, true);
   lastPIDTime = millis();
   // module setup calls
-  Serial.println("Setting up heater...");
+  Serial.println(F("Setting up heater..."));
   setupHeater();
-  Serial.println("Setting up temperature sensor...");
+  Serial.println(F("Setting up temperature sensor..."));
   setupTempSensor();
-  Serial.println("Setup complete.  Starting.");
+  Serial.println(F("Setup complete.  Starting."));
   printHelp();
 }
 
@@ -88,10 +88,10 @@ void loop()
   float ir_temp;
   
   if (digitalRead(RESET_BUTTON) == LOW) {
-      Serial.println("button pressed");
+      Serial.println(F("button pressed"));
       targetTemp = readFloat(ESPRESSO_TEMP_ADDRESS); // from EEPROM. load the saved value
       setupLCD(targetTemp, false);
-      Serial.print("setting target temp = ");
+      Serial.print(F("setting target temp = "));
       Serial.println(targetTemp);
   }
   // this call interprets characters from the serial port
@@ -115,6 +115,7 @@ void loop()
     ir_temp = getLastTemp();
 #endif
     new_temp = updateLCD(targetTemp, ir_temp, thermo_temp);
+    //new_temp = 100;
     if (new_temp >= 0) {
       targetTemp = new_temp;
     }

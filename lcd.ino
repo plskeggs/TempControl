@@ -35,21 +35,21 @@ typedef struct tempProfilePoint
    unsigned long timeToReach; // in seconds
 } TEMP_PROFILE_POINT;
 
-TEMP_PROFILE_POINT leadProfile[] = {
+TEMP_PROFILE_POINT leadProfile[7] = {
    {100.0, 45}, // pre-heat
    {140.0, 45}, // flux activation
    {180.0, 120},// soaking to minimize voiding in BGA assemblies
-   {220.0, 30}, // reflow!
+   {220.0, 70}, // reflow! (spec says this should be 30 seconds, but we can't rise that fast)
    {180.0, 30}, // cooling starts now... open the door to help it along, since this thing is a heater, not a cooler
    {25.0, 120},
    {0.0, 0}     // end of profile sentinel
 };
 
-TEMP_PROFILE_POINT leadFreeProfile[] = {
+TEMP_PROFILE_POINT leadFreeProfile[7] = {
    {100.0, 60}, // pre-heat
    {140.0, 60}, // flux activation
    {219.0, 90}, // soak
-   {240.0, 30}, // peak reflow (min 230, max 249)
+   {240.0, 45}, // peak reflow (min 230, max 249) (spec says this should be 30 seconds, but we can't rise that fast)
    {219.0, 30}, // cooling start
    {25.0, 100},
    {0.0, 0}     // end of profile sentinel
@@ -76,7 +76,7 @@ void setupLCD(float startTemp, boolean startLCD) {
     lcd.clear();
     pinMode(BL, OUTPUT);
     analogWrite(BL,blevel);
-    lcd.print("TempControl v1.0");
+    lcd.print("TempControl v1.1");
     delay(2000);
   }
   startTime = millis();
@@ -95,41 +95,44 @@ float updateLCD(float target, float t1, float t2) {
   
   new_temp = -1;
   trg = target;
-
+  
   switch(menuState)
   {
      case MS_INIT:
         lcd.clear();
-        lcd.print("Off Man  Pb NoPb");
+        lcd.print(F("Off Man  Pb NoPb"));
         lcd.setCursor(menuX[mode],1);
-        lcd.print("^");
-        lcd.blink();
+        lcd.print(F("^"));
+        Serial.println(F("menu init state"));
         menuState = MS_IDLE;
+        startTime = millis();
         break;
      case MS_IDLE:
+        if ((millis() - startTime) < 100)
+           break;
+        startTime = millis();
         if(!rotary.pressed())
         {
            old_mode = mode;
-           mode = rotary.position() % 4;
+           mode = (rotary.position()/2) % 4;
            if(mode != old_mode)
            {
               lcd.setCursor(menuX[old_mode],1);
-              lcd.print(" ");
+              lcd.print(F(" "));
               lcd.setCursor(menuX[mode],1);
-              lcd.print("^");
+              lcd.print(F("^"));
            }
         }
         else // pressing the encoder selects the menu item
         {
-           lcd.noBlink();
            if(mode == 0)
            {
               trg = new_temp = 0; // setting temperature to 0 effectively turns the unit off
               startTime = millis();
               menuState = MS_MANUAL;
-              Serial.println("Off Mode");
+              Serial.println(F("Off Mode"));
               lcd.clear();
-              lcd.print("Off Mode");
+              lcd.print(F("Off Mode"));
               delay(2000);
            }
            else if(mode == 1)
@@ -137,33 +140,37 @@ float updateLCD(float target, float t1, float t2) {
               trg = new_temp = readFloat(ESPRESSO_TEMP_ADDRESS); // from EEPROM. load the saved value
               startTime = millis();
               menuState = MS_MANUAL;
-              Serial.println("Manual Mode");
+              Serial.println(F("Manual Mode"));
               lcd.clear();
-              lcd.print("Manual Mode");
+              lcd.print(F("Manual Mode"));
               delay(2000);
            }
-           else if(mode == 2) // lead profile
+           else if ((mode == 2) || (mode == 3)) // lead profile or lead-free
            {
-              curProfile = &leadProfile[0];
-              startTime = tempUpdateTime = millis();
-              endTime = startTime + curProfile->timeToReach * 1000;
-              trg = new_temp = getCurrentTemp();
-              menuState = MS_RUNNING;
-              Serial.println("Lead Profile");
               lcd.clear();
-              lcd.print("Lead Profile");
-              delay(2000);
-           }
-           else if(mode == 3) // lead-free profile
-           {
-              curProfile = &leadFreeProfile[0];
+              if (mode == 2) {
+                Serial.println(F("Lead Profile"));
+                lcd.print(F("Lead Profile"));
+                curProfile = &leadProfile[0];
+              }
+              else {
+                Serial.println(F("Lead-Free Profile"));
+                lcd.print(F("LeadFree Profile"));
+                curProfile = &leadFreeProfile[0];
+              }
               startTime = tempUpdateTime = millis();
-              endTime = startTime + curProfile->timeToReach * 1000;
+              endTime = startTime + curProfile->timeToReach * 1000l;
               trg = new_temp = getCurrentTemp();
+              currentSlope = (curProfile->goalTemp - getCurrentTemp()) / (float)(endTime - startTime);
               menuState = MS_RUNNING;
-              Serial.println("Lead-Free Profile");
-              lcd.clear();
-              lcd.print("LeadFree Profile");
+              Serial.print(F("time to reach="));
+              Serial.print(curProfile->timeToReach);
+              Serial.print(F(", goal temp="));
+              Serial.print(curProfile->goalTemp);
+              Serial.print(F(", cur temp="));
+              Serial.print(getCurrentTemp());
+              Serial.print(F(", slope="));
+              Serial.println(currentSlope, 5);
               delay(2000);
            }
         }
@@ -172,9 +179,9 @@ float updateLCD(float target, float t1, float t2) {
         curTime = millis();
         if(rotary.pressed())
         {
-          Serial.println("Encoder pressed");
+          Serial.println(F("Encoder pressed"));
           new_temp = rotary.position();
-          Serial.print("Encoder position = ");
+          Serial.print(F("Encoder position = "));
           Serial.println(new_temp);
           trg = new_temp;
           startTime = curTime; // reset timer
@@ -184,10 +191,10 @@ float updateLCD(float target, float t1, float t2) {
         {
            lcd.clear();
            // first line: running time in seconds, space, temperature from IR thermometer, space, state of heater
-           lcd.print((millis()-startTime)/1000.0);lcd.print(" ");lcd.print(t1);lcd.print(" ");lcd.print(getHeatCycles());
+           lcd.print((millis()-startTime)/1000.0, 1);lcd.print(" ");lcd.print(t1, 1);lcd.print(" ");lcd.print(getHeatCycles());
            lcd.setCursor(0,1); 
            // second line: target temperature, space, temperature from thermocouple
-           lcd.print(trg); lcd.print(" ");lcd.print(t2);
+           lcd.print(trg, 1); lcd.print(" ");lcd.print(t2, 1);
            lcdUpdateTime = curTime + 1000;
         }
         break;
@@ -195,36 +202,50 @@ float updateLCD(float target, float t1, float t2) {
         curTime = millis();
         if(curTime < endTime)
         {
-           currentSlope = (curProfile->goalTemp - getCurrentTemp()) / (endTime - curTime);
-           trg = new_temp = target + currentSlope * (curTime - tempUpdateTime);
+           new_temp = target + currentSlope * (curTime - tempUpdateTime);
+           if (currentSlope >= 0.0) { // for safety, sanity-check the current target temperature
+             if (new_temp > curProfile->goalTemp) // we passed our goal,
+                new_temp = curProfile->goalTemp;  // so clamp it here
+           }
+           else {
+              if (new_temp < curProfile->goalTemp) // we fell below our goal,
+                 new_temp = curProfile->goalTemp;  // so clamp here
+           }
+           trg = new_temp;
            tempUpdateTime = curTime;
            if(curTime > lcdUpdateTime)
            {
               lcd.clear();
               // first line: running time in seconds, space, end time, space, state of heater
-              lcd.print((curTime-startTime)/1000.0);lcd.print(" ");lcd.print((endTime-startTime)/1000.0);lcd.print(" ");lcd.print(getHeatCycles());
+              lcd.print((curTime-startTime)/1000.0, 1);lcd.print(" ");lcd.print((endTime-startTime)/1000.0, 1);lcd.print(" ");lcd.print(getHeatCycles());
               lcd.setCursor(0,1); 
               // second line: target temperature, space, temperature from active temperature sensor, space, goal temp
-              lcd.print(trg); lcd.print(" ");lcd.print(getCurrentTemp());lcd.print(" "); lcd.print(curProfile->goalTemp);
+              lcd.print(trg, 1); lcd.print(" ");lcd.print(getCurrentTemp(), 1);lcd.print(" "); lcd.print(curProfile->goalTemp, 0);
               lcdUpdateTime = curTime + 1000;
            }
         }
         else
         {
-           Serial.println("next profile");
+           Serial.println(F("next profile"));
            curProfile++;
            startTime = curTime;
-           endTime = curTime + curProfile->timeToReach * 1000;
-           Serial.print("time to reach=");
+           endTime = curTime + curProfile->timeToReach * 1000l;
+           currentSlope = (curProfile->goalTemp - getCurrentTemp()) / (float)(endTime - startTime);
+           Serial.print(F("time to reach="));
            Serial.print(curProfile->timeToReach);
-           Serial.print(", goal temp=");
-           Serial.println(curProfile->goalTemp);
+           Serial.print(F(", goal temp="));
+           Serial.print(curProfile->goalTemp);
+           Serial.print(F(", cur temp="));
+           Serial.print(getCurrentTemp());
+           Serial.print(F(", slope="));
+           Serial.println(currentSlope, 5);
            if(curProfile->timeToReach == 0)  // reached the end of the profile table
            {
-              Serial.println("done with profile");
+              Serial.println(F("done with profile"));
               lcd.clear();
-              lcd.print("Done.  Cur temp:");
+              lcd.print(F("Done."));
               lcd.setCursor(0,1);
+              lcd.print(F("Cur temp: "));
               lcd.print(getCurrentTemp());
               menuState = MS_DONE;
               new_temp = 0;

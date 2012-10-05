@@ -20,25 +20,25 @@ boolean printmode = 0;
 unsigned long lastUpdateTime = 0;
 void setupSerialInterface()  {
   Serial.begin(115200);
-  Serial.println("\nWelcome to the BBCC, the Bare Bones Coffee Controller for Arduino");
-  Serial.println("Send back one or more characters to setup the controller.");
-  Serial.println("If this is your initial run, please enter 'R' to Reset the EEPROM.");
-  Serial.println("Enter '?' for help.  Here's to a great cup!");
+  Serial.println(F("\nWelcome to the BBCC, the Bare Bones Coffee Controller for Arduino"));
+  Serial.println(F("Send back one or more characters to setup the controller."));
+  Serial.println(F("If this is your initial run, please enter 'R' to Reset the EEPROM."));
+  Serial.println(F("Enter '?' for help.  Here's to a great cup!"));
 }
 
 void printHelp() {
-  Serial.println("Send these characters for control:");
-  Serial.println("<space> : print status now");
-  Serial.println("u : toggle periodic status update");
-  Serial.println("g : toggle update style between human and graphing mode");
-  Serial.println("R : reset/initialize PID gain values");
-  Serial.println("b : print PID debug values");
-  Serial.println("? : print help");  
-  Serial.println("+/- : adjust delta by a factor of ten");
-  Serial.println("P/p : up/down adjust p gain by delta");
-  Serial.println("I/i : up/down adjust i gain by delta");
-  Serial.println("D/d : up/down adjust d gain by delta");
-  Serial.println("T/t : up/down adjust set temp by delta");
+  Serial.println(F("Send these characters for control:"));
+  Serial.println(F("<space> : print status now"));
+  Serial.println(F("u : toggle periodic status update"));
+  Serial.println(F("g : toggle update style between human and graphing mode"));
+  Serial.println(F("R : reset/initialize PID gain values"));
+  Serial.println(F("b : print PID debug values"));
+  Serial.println(F("? : print help"));  
+  Serial.println(F("+/- : adjust delta by a factor of ten"));
+  Serial.println(F("P/p : up/down adjust p gain by delta"));
+  Serial.println(F("I/i : up/down adjust i gain by delta"));
+  Serial.println(F("D/d : up/down adjust d gain by delta"));
+  Serial.println(F("T/t : up/down adjust set temp by delta"));
 
 
 }
@@ -48,7 +48,7 @@ void updateSerialInterface() {
 
     incomingByte = Serial.read();
     if (incomingByte == 'R') {
-      Serial.println("Resetting EEPROM values...");
+      Serial.println(F("Resetting EEPROM values..."));
  #if defined(USE_THERMOCOUPLE)
       setP(35.0); // make sure to keep the decimal point on these values
       setI(1.0);  // make sure to keep the decimal point on these values
@@ -140,41 +140,41 @@ void updateSerialInterface() {
 
 void printStatus() { 
   // A means for getting feedback on the current system status and controllable parameters
-  Serial.print(" SET TEMP:");
+  Serial.print(F(" SET TEMP:"));
   printFloat(getTargetTemp(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", CUR IR TEMP:");
+  Serial.print(F(", CUR IR TEMP:"));
   printFloat(getLastTemp(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", CUR TC TEMP:");
+  Serial.print(F(", CUR TC TEMP:"));
   printFloat(thermo_temp,PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", GAINS p:");
+  Serial.print(F(", GAINS p:"));
   printFloat(getP(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(" i:");
+  Serial.print(F(" i:"));
   printFloat(getI(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(" d:");
+  Serial.print(F(" d:"));
   printFloat(getD(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", Delta: ");
+  Serial.print(F(", Delta: "));
   printFloat(delta,PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", Power: ");
+  Serial.print(F(", Power: "));
   printFloat((float)getHeatCycles(), 0);
 
-  Serial.print(" \r\n");
+  Serial.print(F(" \r\n"));
 }
 
 void printStatusForGraph() {
   printFloat(getTargetTemp(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", ");
+  Serial.print(F(", "));
 #if defined(USE_THERMOCOUPLE)
   printFloat(thermo_temp,PRINT_PLACES_AFTER_DECIMAL);
 #else
   printFloat(getLastTemp(),PRINT_PLACES_AFTER_DECIMAL);
 #endif
-  Serial.print(", ");
+  Serial.print(F(", "));
   printFloat(getP(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", ");
+  Serial.print(F(", "));
   printFloat(getI(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", ");
+  Serial.print(F(", "));
   printFloat(getD(),PRINT_PLACES_AFTER_DECIMAL);
-  Serial.print(", ");
+  Serial.print(F(", "));
   printFloat((float)getHeatCycles(), 0);
   Serial.println();
 }
